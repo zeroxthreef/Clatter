@@ -1,4 +1,4 @@
-## Clatter
+# Clatter
 A procedural lang with kinda weird expression handling.
 The best way to think about this language is all expressions are functions. Pretty much everything can be thought of as a function.
 It's kind of lisp in the sense of s-expressions, but c-like syntax for the actual expressions.
@@ -54,11 +54,11 @@ for(0 0 0)
 
 Documentation will be available soon.
 
-# Using
+## Using
 Using utf8.h at https://github.com/sheredom/utf8.h, which uses Unlicense and is public domain as well.
 
-# Dependencies
+## Dependencies
 Using a sizeable portion of the C stdlib. Will work to reduce the need in the future.
 
-# License
+## License
 Clatter is dual-licensed under Unlicense and the MIT license. Choose whichever you want.

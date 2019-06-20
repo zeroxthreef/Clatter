@@ -16,4 +16,6 @@ void clat_print_tokens(clat_token_t *tokens, unsigned long length);
 
 void clat_print_repetitive(clat_ctx_t *ctx, char ch, int num);
 
+int clat_determine_if_number(clat_ctx_t *ctx, void *value);
+
 #endif

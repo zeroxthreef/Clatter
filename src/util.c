@@ -59,7 +59,7 @@ short is_whitespace_utf8(void *character)
 		"\xc",
 		"\xd",
 		"\x20",
-    	"\xc2\xa0",
+		"\xc2\xa0",
    		"\xe1\x9a\x80",
     	"\xe2\x80\x80",
     	"\xe2\x80\x81",
@@ -150,4 +150,24 @@ void clat_print_repetitive(clat_ctx_t *ctx, char ch, int num)
 	int i;
 	for(i = 0; i < num; i++)
 		printf("%c", ch);
+}
+
+int clat_determine_if_number(clat_ctx_t *ctx, void *value)
+{
+	unsigned int i;
+	long code_p = 0;
+
+	/* TODO TODO TODO ALLOW HEX CHARS TO NOT CATCH IT OFF GUARD */
+
+	for(i = 0; i < utf8len(value); i++)
+	{
+		/* if it starts with 0, and b, x, or any of the other chars follow and its a number, OR its _entirely_ numbers,
+		its a number. Anything else is a pure atom. There can be decimals, so we ignore those. */
+		value = utf8codepoint(value, &code_p);
+
+		if(code_p < '0' || code_p > '9')
+			return 0;
+	}
+
+	return 1;
 }

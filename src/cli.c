@@ -42,17 +42,17 @@ im_function(arg arg2):\n\
 	printsp(\"hey, value:\" +(5 5 5 5))\n\
 }\n\
 ",\
-*test2 = "{}{}{{}{}{}}";
+*test2 = "+(thing 1)";
 
 int main(int argc, char **argv)
 {
 	clat_ctx_t ctx;
 	memset(&ctx, 0, sizeof(clat_ctx_t));
 
-	clat_parse_string(&ctx, test2, 0);
+	clat_parse_string(&ctx, test1, 0);
 
 	clat_parse_print(&ctx, ctx.root);
-	
+
 
 	return 0;
 }
