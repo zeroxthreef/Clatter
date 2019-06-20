@@ -99,11 +99,11 @@ unsigned long clat_parse_generate_ast(clat_ctx_t *ctx, clat_token_t *tokens, cla
 {
 	unsigned long i, new_pos = 0;
 	double temp_num;
-printf("im called\n");
+
 	for(i = token_pos; i < token_num; i++)
 	{
 		/* test for larger possibilities first like function definitions, then calls, then blocks */
-printf("hey so %d f%u\n", tokens[i].token, parent->num_children);
+
 		if(tokens[i].token == CLAT_TOK_ATOM)
 		{
 			/* its either a call or a definition, so we'll just assume its both until a colon is encountered or 
@@ -231,6 +231,26 @@ printf("hey so %d f%u\n", tokens[i].token, parent->num_children);
 				break;
 			}
 		}
+		else if(tokens[i].token == CLAT_TOK_AMPERSAND)
+		{
+			if(i + 1 != token_num && tokens[i + 1].token == CLAT_TOK_ATOM)
+			{
+				if(!(parent->children = realloc(parent->children, sizeof(clat_ast_node_t) * (parent->num_children + 1))))
+				{
+					/* handle error */
+					return -1;
+				}
+				
+				memset(&parent->children[parent->num_children], 0, sizeof(clat_ast_node_t));
+				
+				parent->children[parent->num_children].type = CLAT_NODE_REFERENCE_ATOM_LITERAL;
+				parent->children[parent->num_children].data = utf8dup(tokens[i + 1].data);
+
+				parent->num_children++;
+
+				i++;
+			}
+		}
 		else if(tokens[i].token == CLAT_TOK_BRACE_CLOSE)
 		{
 			new_pos = i;
@@ -267,10 +287,13 @@ static void clat_parse_print_internal(clat_ctx_t *ctx, clat_ast_node_t *ast, uns
 				printf("str:%s\n", temp->data);
 			break;
 			case CLAT_NODE_FUNCTION_CALL:
-				printf("fcal:%s\n", temp->data);
+				printf("cal:%s\n", temp->data);
 			break;
 			case CLAT_NODE_FUNCTION_DEFINITION:
-				printf("fdec:%s\n", temp->data);
+				printf("dec:%s\n", temp->data);
+			break;
+			case CLAT_NODE_REFERENCE_ATOM_LITERAL:
+				printf("ref:%s\n", temp->data);
 			break;
 			default:
 				printf("?\n");

@@ -38,6 +38,7 @@ enum clat_nodes
 	CLAT_NODE_FUNCTION_INDETERMINATE,
 	CLAT_NODE_FUNCTION_DEFINITION,
 	CLAT_NODE_ATOM_LITERAL,
+	CLAT_NODE_REFERENCE_ATOM_LITERAL,
 	CLAT_NODE_NUMBER_LITERAL,
 	CLAT_NODE_STRING_LITERAL
 };
@@ -66,14 +67,7 @@ typedef struct
 
 typedef struct
 {
-
-} clat_ast_node_func_call_t;
-
-typedef struct
-{
 	/* NOTE make an array of functions inside the block */
-	void *args, *identifier;
-	uint16_t arg_num;
 	uint32_t symbol;
 } clat_ast_node_func_def_t;
 

@@ -42,14 +42,25 @@ im_function(arg arg2):\n\
 	printsp(\"hey, value:\" +(5 5 5 5))\n\
 }\n\
 ",\
-*test2 = "+(thing 1)";
+*test2 = "\n\
+=(global 1)\n\
+\n\
+func(\"test\" global)\n\
+\n\
+func(stringo &heyo):\n\
+{\n\
+	printsp(stringo heyo)\n\
+	=(heyo 3)\n\
+}\n\
+printsp(\"after\" global)\n\
+";
 
 int main(int argc, char **argv)
 {
 	clat_ctx_t ctx;
 	memset(&ctx, 0, sizeof(clat_ctx_t));
 
-	clat_parse_string(&ctx, test1, 0);
+	clat_parse_string(&ctx, test2, 0);
 
 	clat_parse_print(&ctx, ctx.root);
 
