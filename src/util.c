@@ -171,3 +171,83 @@ int clat_determine_if_number(clat_ctx_t *ctx, void *value)
 
 	return 1;
 }
+
+uint8_t *clat_read_file(clat_ctx_t *ctx, size_t begin, size_t end, const char *path, size_t *size)
+{
+	uint8_t *data = NULL;
+	FILE *file = NULL;
+
+	if(!(file = fopen(path, "rb")))
+	{
+		/* print an error */
+		return data;
+	}
+	
+	fseek(file, 0, SEEK_END);
+	*size = ftell(file);
+	fseek(file, 0, SEEK_SET);
+
+	if(!(data = (uint8_t *)calloc(1, *size + 1))) /* doesnt matter if we add _just one byte_ at the end as long as we return the real amount. Good for text file loading */
+	{
+		/* print an error */
+
+		if(fclose(file))
+		{
+			/* print an error */
+			return NULL;
+		}
+		return NULL;
+	}
+
+	if(fread(data, sizeof(uint8_t), *size, file) != *size)
+	{
+		/* print an error */
+
+		if(fclose(file))
+		{
+			/* print an error */
+			return NULL;
+		}
+		
+		return NULL;
+	}
+
+	if(fclose(file))
+	{
+		/* print an error */
+		return data; /* probably ok to return data here. Just a weird filesystem error */
+	}
+
+	return data;
+}
+
+ssize_t clat_write_file(clat_ctx_t *ctx, uint8_t data, const char *path, size_t size)
+{
+	FILE *file = NULL;
+	size_t amount;
+
+	if(!(file = fopen(path, "wb")))
+	{
+		/* print an error */
+		return -1;
+	}
+
+	amount = fwrite((void *)data, sizeof(uint8_t), size, file);
+
+
+	if(fclose(file))
+	{
+		/* print an error */
+		return -1;
+	}
+
+	return amount;
+}
+
+short clat_read_bitflag(uint64_t value, short bit)
+{
+	/* shift then use a bitmask */
+	value >>= bit;
+	value &= 1;
+	return value;
+}

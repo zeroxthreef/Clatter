@@ -21,12 +21,17 @@ int clat_parse_string(clat_ctx_t *ctx, char *source, uint32_t flags)
 		return 1;
 	}
 
-	clat_print_tokens(tokens, tokens_length);
+	if(clat_read_bitflag(flags, 1))
+		clat_print_tokens(tokens, tokens_length);
 
 	/* ast-ify the tokens */
 	/* NOTE the current "block" needs to be scanned for functions all the way */
 
 
+	/* TODO check if the ast is null as a test of whether or not to add utils */
+	/* TODO check if the ast is null as a test of whether or not to add utils */
+	/* TODO check if the ast is null as a test of whether or not to add utils */
+	/* TODO check if the ast is null as a test of whether or not to add utils */
 	if(clat_parse_init_ast(ctx, &ctx->root))
 	{
 		/* handle error */

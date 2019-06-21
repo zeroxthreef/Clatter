@@ -3,7 +3,17 @@
 
 #include <stdint.h>
 
+#define CLATTER_VER_MAJOR 0
+#define CLATTER_VER_MINOR 0
+#define CLATTER_VER_REVISION 1
+
 /* LEXER */
+
+enum clat_parser_options
+{
+	CLAT_PARSE_REGULAR,
+	CLAT_PARSE_DEBUG = 2
+};
 
 enum clat_tokens
 {

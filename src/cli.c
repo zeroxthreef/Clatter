@@ -4,6 +4,7 @@
 #include "util.h"
 #include "lexer.h"
 #include "parser.h"
+#include "clatter.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -31,38 +32,75 @@ switch(2)
 }
 */
 
-char *test = "printsp(im_an_atom \"wo\\to\" \"hey\" +(4 *(10 10)))",\
-*test1 = "=(var1 10)\n\
-=(var2 \"hey\")\n\
-\n\
-im_function(var1 var2)\n\
-\n\
-im_function(arg arg2):\n\
-{\n\
-	printsp(\"hey, value:\" +(5 5 5 5))\n\
-}\n\
-",\
-*test2 = "\n\
-=(global 1)\n\
-\n\
-func(\"test\" global)\n\
-\n\
-func(stringo &heyo):\n\
-{\n\
-	printsp(stringo heyo)\n\
-	=(heyo 3)\n\
-}\n\
-printsp(\"after\" global)\n\
-";
-
 int main(int argc, char **argv)
 {
 	clat_ctx_t ctx;
+	unsigned long i;
+	uint8_t print_debug = 0;
+	char *file = NULL;
+	size_t file_size;
+
 	memset(&ctx, 0, sizeof(clat_ctx_t));
 
-	clat_parse_string(&ctx, test2, 0);
+	/* determine if it will enter REPL mode or execute from file */
+	/* commands are help, print ast and tokens after parsing, and printing the version */
 
-	clat_parse_print(&ctx, ctx.root);
+	if(argc > 1)
+	{
+		for(i = 1; i < argc; i++)
+		{
+			if(strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0)
+			{
+				printf("%s\nclatter help\n\ncommand options:\n\t(-h,--help): print this help page\n\t(-v,--version): print the version of the clatter interpreter\n\t(-d,--debug): when used in conjunction with a specified file path, it will just parse the file and output the tokens and the AST\n\n", fancy_name);
+				break;
+			}
+			else if(strcmp(argv[i], "-d") == 0 || strcmp(argv[i], "--debug") == 0)
+				print_debug++;
+			else if(strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--version") == 0)
+			{
+				printf("%s\nclatter version %d.%d.%d, compiled on %s\n", fancy_name, CLATTER_VER_MAJOR, CLATTER_VER_MINOR, CLATTER_VER_REVISION, __TIMESTAMP__ );
+				break;
+			}
+			else if(strncmp(argv[i], "-", 1) != 0)
+			{
+				if(!file)
+					file = argv[i];
+			}
+			else
+				printf("unknown command. Please run \"-h\" or \"--help\" to print the help text\n");
+		}
+	}
+	else
+	{
+		/* repl mode */
+		printf("%s\nREPL mode\n\nusage:\n\tto quit, type \"exit()\" and press enter\n\tfunctions have to have the colon on the same line, ex \"beep(status):\". Otherwise, REPL mode will interpret it as a function call\n\n", fancy_name);
+
+		return 0;
+	}
+
+
+	/* if we made it here, we're parsing a file */
+
+	/* dont execute, just print what the file parses to */
+	if(print_debug)
+	{
+		if(!(file = clat_read_file(&ctx, 0, 0, file, &file_size)))
+		{
+			/* handle error */
+			return 1;
+		}
+		printf("tokens:\n\n");
+		clat_parse_string(&ctx, file, CLAT_PARSE_DEBUG);
+
+		printf("AST:\n\n");
+		clat_parse_print(&ctx, ctx.root);
+	}
+	else
+	{
+
+	}
+
+	
 
 
 	return 0;

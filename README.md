@@ -24,7 +24,7 @@ testThing(concat1 concat2):
 	{
 		+(string(concat1) string(concat2))
 	}
-	else
+	else()
 	{
 		+(string(concat2) string(concat1))
 	}

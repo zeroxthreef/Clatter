@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <unistd.h>
 
 short tl_asprintf(char **string, const char *fmt, ...);
 
@@ -17,5 +18,11 @@ void clat_print_tokens(clat_token_t *tokens, unsigned long length);
 void clat_print_repetitive(clat_ctx_t *ctx, char ch, int num);
 
 int clat_determine_if_number(clat_ctx_t *ctx, void *value);
+
+uint8_t *clat_read_file(clat_ctx_t *ctx, size_t begin, size_t end, const char *path, size_t *size);
+
+ssize_t clat_write_file(clat_ctx_t *ctx, uint8_t data, const char *path, size_t size);
+
+short clat_read_bitflag(uint64_t value, short bit);
 
 #endif
