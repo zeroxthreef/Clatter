@@ -5,6 +5,8 @@ helloFunction(noun):
 	printsp("hello" noun)
 
 	insidefunc():{}
+	insidefunc1():{}
+	insidefunc2():{}
 	
 	printsp("hello" noun)
 }
