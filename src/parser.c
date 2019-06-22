@@ -63,10 +63,10 @@ int clat_parse_string(clat_ctx_t *ctx, char *source, uint32_t flags)
 		return 1;
 	}
 
-	//if(clat_parse_finalize_ast(ctx, ctx->root))
+	if(clat_parse_finalize_ast(ctx, ctx->root))
 	{
 		/* handle error */
-		//return 1;
+		return 1;
 	}
 
 
@@ -307,7 +307,7 @@ int clat_parse_finalize_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 			{
 				if(temp->children[i].type == CLAT_NODE_FUNCTION_DEFINITION)
 				{
-					((clat_ast_node_block_t *)temp->data)->functions = realloc(((clat_ast_node_block_t *)temp->data)->functions, ((clat_ast_node_block_t *)temp->data)->function_num + 1);
+					((clat_ast_node_block_t *)temp->data)->functions = realloc(((clat_ast_node_block_t *)temp->data)->functions, sizeof(clat_ast_function_t) * (((clat_ast_node_block_t *)temp->data)->function_num + 1));
 
 					((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].identifier = temp->children[i].data;
 					((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].ast_node = &temp->children[i];
@@ -339,7 +339,7 @@ static void clat_parse_print_internal(clat_ctx_t *ctx, clat_ast_node_t *ast, uns
 		{
 			case CLAT_NODE_BLOCK:
 				printf("block:\n");
-				/*clat_print_repetitive(ctx, '\t', level);
+				clat_print_repetitive(ctx, '\t', level);
 				printf("definitions[\n");
 				for(j = 0; j < ((clat_ast_node_block_t *)temp->data)->function_num; j++)
 				{
@@ -347,7 +347,7 @@ static void clat_parse_print_internal(clat_ctx_t *ctx, clat_ast_node_t *ast, uns
 					printf("%s\n", ((clat_ast_node_block_t *)temp->data)->functions[j].identifier);
 				}
 				clat_print_repetitive(ctx, '\t', level);
-				printf("]\n"); */
+				printf("]\n");
 			break;
 			case CLAT_NODE_ATOM_LITERAL:
 				printf("atm:%s\n", temp->data);
