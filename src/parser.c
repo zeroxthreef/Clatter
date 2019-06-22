@@ -109,8 +109,8 @@ unsigned long clat_parse_generate_ast(clat_ctx_t *ctx, clat_token_t *tokens, cla
 
 		if(parent->type == CLAT_NODE_FUNCTION_DEFINITION)
 		{
-			//if(parent->num_children > 0 && parent->children[parent->num_children - 1].type == CLAT_NODE_BLOCK)
-				//break;
+			if(parent->num_children > 0 && parent->children[parent->num_children - 1].type == CLAT_NODE_BLOCK)
+				break;
 		}
 
 
