@@ -72,7 +72,15 @@ typedef struct
 
 typedef struct
 {
+	void *identifier;
+	void *ast_node; /* pointer to the actual function node */
+} clat_ast_function_t;
 
+typedef struct
+{
+	/* resolve symbols at execute time */
+	clat_ast_function_t *functions;
+	uint32_t function_num;
 } clat_ast_node_block_t;
 
 typedef struct

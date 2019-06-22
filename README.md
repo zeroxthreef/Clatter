@@ -5,7 +5,7 @@ It's kind of lisp in the sense of s-expressions, but c-like syntax for the actua
 
 Heres an example:
 ```
-print(+(3 5 8 9))
+printsp(+(3 5 8 9))
 ```
 
 And another more complicated one:
@@ -42,13 +42,13 @@ And an example with a for loop
 ```
 for({=(i 0)} {<(i 10)} {=(i +(i 1))})
 {
-	printsp("hello" i "\n")
+	printsp("hello" i)
 }
 
 //if you wanted to just loop forever
 for(0 0 0)
 {
-	print("hello\n")
+	printsp("hello")
 }
 ```
 

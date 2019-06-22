@@ -1,0 +1,14 @@
+helloFunction("world")
+
+helloFunction(noun):
+{
+	printsp("hello" noun)
+
+	insidefunc():{}
+	
+	printsp("hello" noun)
+}
+newfn():
+{
+
+}

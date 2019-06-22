@@ -28,15 +28,13 @@ int clat_parse_string(clat_ctx_t *ctx, char *source, uint32_t flags)
 	/* NOTE the current "block" needs to be scanned for functions all the way */
 
 
-	/* TODO check if the ast is null as a test of whether or not to add utils */
-	/* TODO check if the ast is null as a test of whether or not to add utils */
-	/* TODO check if the ast is null as a test of whether or not to add utils */
-	/* TODO check if the ast is null as a test of whether or not to add utils */
-	if(clat_parse_init_ast(ctx, &ctx->root))
-	{
-		/* handle error */
-		return 1;
-	}
+	/* check if the ast is null as a test of whether or not to add utils */
+	if(!ctx->root)
+		if(clat_parse_init_ast(ctx, &ctx->root))
+		{
+			/* handle error */
+			return 1;
+		}
 
 	/* NOTE NOTE function calls will have child nodes if theres a block expression below */
 	/* function def:  [atom] [(] (REF)ATOMS [)] [:] [{] EXPRESSIONS [}] */
@@ -65,7 +63,11 @@ int clat_parse_string(clat_ctx_t *ctx, char *source, uint32_t flags)
 		return 1;
 	}
 
-
+	//if(clat_parse_finalize_ast(ctx, ctx->root))
+	{
+		/* handle error */
+		//return 1;
+	}
 
 
 	/* cleanup the tokens because theyre no longer needed */
@@ -92,14 +94,6 @@ int clat_parse_init_ast(clat_ctx_t *ctx, clat_ast_node_t **ast)
 	return 0;
 }
 
-int clat_parse_add_function(clat_ctx_t *ctx, char *atom, clat_val_t(*clat_callback)(clat_ctx_t *ctx, clat_val_t *arguments, uint16_t argument_num))
-{
-
-
-
-	return 0;
-}
-
 unsigned long clat_parse_generate_ast(clat_ctx_t *ctx, clat_token_t *tokens, clat_ast_node_t *parent, unsigned long token_num, unsigned long token_pos)
 {
 	unsigned long i, new_pos = 0;
@@ -108,6 +102,17 @@ unsigned long clat_parse_generate_ast(clat_ctx_t *ctx, clat_token_t *tokens, cla
 	for(i = token_pos; i < token_num; i++)
 	{
 		/* test for larger possibilities first like function definitions, then calls, then blocks */
+
+		/* sort of hacky, but theres no way to communicate with the parent when inside the block,
+		so when we're inside the parent and want to escape after the one and only block is
+		allowed, we exit */
+
+		if(parent->type == CLAT_NODE_FUNCTION_DEFINITION)
+		{
+			//if(parent->num_children > 0 && parent->children[parent->num_children - 1].type == CLAT_NODE_BLOCK)
+				//break;
+		}
+
 
 		if(tokens[i].token == CLAT_TOK_ATOM)
 		{
@@ -267,9 +272,62 @@ unsigned long clat_parse_generate_ast(clat_ctx_t *ctx, clat_token_t *tokens, cla
 	return new_pos;
 }
 
+/* this _has_ to be run even if someone didnt want a refined ast because it throws function definitions into the parent node */
+int clat_parse_finalize_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
+{
+	unsigned long i, j;
+	clat_ast_node_t *temp = ast;
+
+	/* optimize * and + */
+	/* TODO / and -, but they have to be consecutive */
+	/*
+	if(temp->type == CLAT_NODE_ATOM_LITERAL && utf8cmp(temp->data, "+") == 0)
+	{
+		for(i = 0; i < ast->num_children; i++)
+		{
+			temp = &ast->children[i];
+			if(temp->type == CLAT_NODE_NUMBER_LITERAL)
+			{
+				/* combine number literals *//*
+			}
+		}
+
+		temp = ast;
+	}
+	*/
+
+	for(i = 0; i < ast->num_children; i++)
+	{
+		temp = &ast->children[i];
+
+		/* add the function identifiers to a list inside the block */
+		if(temp->type == CLAT_NODE_BLOCK)
+		{
+			for(j = 0; j < temp->num_children; j++)
+			{
+				if(temp->children[i].type == CLAT_NODE_FUNCTION_DEFINITION)
+				{
+					((clat_ast_node_block_t *)temp->data)->functions = realloc(((clat_ast_node_block_t *)temp->data)->functions, ((clat_ast_node_block_t *)temp->data)->function_num + 1);
+
+					((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].identifier = temp->children[i].data;
+					((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].ast_node = &temp->children[i];
+
+					((clat_ast_node_block_t *)temp->data)->function_num++;
+				}
+			}
+		}
+
+		if(clat_parse_finalize_ast(ctx, temp))
+		{
+			return 1;
+		}
+	}
+	return 0;
+}
+
 static void clat_parse_print_internal(clat_ctx_t *ctx, clat_ast_node_t *ast, unsigned long level)
 {
-	unsigned long i;
+	unsigned long i, j;
 	clat_ast_node_t *temp = NULL;
 
 	for(i = 0; i < ast->num_children; i++)
@@ -281,6 +339,15 @@ static void clat_parse_print_internal(clat_ctx_t *ctx, clat_ast_node_t *ast, uns
 		{
 			case CLAT_NODE_BLOCK:
 				printf("block:\n");
+				/*clat_print_repetitive(ctx, '\t', level);
+				printf("definitions[\n");
+				for(j = 0; j < ((clat_ast_node_block_t *)temp->data)->function_num; j++)
+				{
+					clat_print_repetitive(ctx, '\t', level);
+					printf("%s\n", ((clat_ast_node_block_t *)temp->data)->functions[j].identifier);
+				}
+				clat_print_repetitive(ctx, '\t', level);
+				printf("]\n"); */
 			break;
 			case CLAT_NODE_ATOM_LITERAL:
 				printf("atm:%s\n", temp->data);

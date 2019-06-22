@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 			return 1;
 		}
 		printf("tokens:\n\n");
-		clat_parse_string(&ctx, file, CLAT_PARSE_DEBUG);
+		clat_compile_string(&ctx, file, CLAT_PARSE_DEBUG);
 
 		printf("AST:\n\n");
 		clat_parse_print(&ctx, ctx.root);
