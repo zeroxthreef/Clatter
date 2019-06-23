@@ -83,10 +83,8 @@ int clat_parse_init_ast(clat_ctx_t *ctx, clat_ast_node_t **ast)
 		return 1;
 	}
 
-	ctx->root->type = CLAT_TYPE_BLOCK;
-	ctx->root->children = NULL;
-	ctx->root->data = NULL;
-	ctx->root->num_children = 0;
+	ctx->root->type = CLAT_NODE_BLOCK;
+	ctx->root->data = calloc(1, sizeof(clat_ast_node_block_t));
 
 	/* add default functions */
 
@@ -295,28 +293,26 @@ int clat_parse_finalize_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 		temp = ast;
 	}
 	*/
+	/* add the function identifiers to a list inside the block */
+	if(temp->type == CLAT_NODE_BLOCK)
+	{
+		for(j = 0; j < temp->num_children; j++)
+		{
+			if(temp->children[j].type == CLAT_NODE_FUNCTION_DEFINITION)
+			{
+				((clat_ast_node_block_t *)temp->data)->functions = realloc(((clat_ast_node_block_t *)temp->data)->functions, sizeof(clat_ast_function_t) * (((clat_ast_node_block_t *)temp->data)->function_num + 1));
+
+				((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].identifier = temp->children[j].data;
+				((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].ast_node = &temp->children[j];
+
+				((clat_ast_node_block_t *)temp->data)->function_num++;
+			}
+		}
+	}
 
 	for(i = 0; i < ast->num_children; i++)
 	{
 		temp = &ast->children[i];
-
-		/* add the function identifiers to a list inside the block */
-		if(temp->type == CLAT_NODE_BLOCK)
-		{
-			for(j = 0; j < temp->num_children; j++)
-			{
-				if(temp->children[j].type == CLAT_NODE_FUNCTION_DEFINITION)
-				{
-					printf("neat %s\n", temp->children[j].data);
-					((clat_ast_node_block_t *)temp->data)->functions = realloc(((clat_ast_node_block_t *)temp->data)->functions, sizeof(clat_ast_function_t) * (((clat_ast_node_block_t *)temp->data)->function_num + 1));
-
-					((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].identifier = temp->children[j].data;
-					((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].ast_node = &temp->children[j];
-
-					((clat_ast_node_block_t *)temp->data)->function_num++;
-				}
-			}
-		}
 
 		if(clat_parse_finalize_ast(ctx, temp))
 		{
@@ -329,57 +325,57 @@ int clat_parse_finalize_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 static void clat_parse_print_internal(clat_ctx_t *ctx, clat_ast_node_t *ast, unsigned long level)
 {
 	unsigned long i, j;
-	clat_ast_node_t *temp = NULL;
+	clat_ast_node_t *temp = ast;
+
+	clat_print_repetitive(ctx, '\t', level);
+	switch(temp->type)
+	{
+		case CLAT_NODE_BLOCK:
+			printf("block:\n");
+			if(((clat_ast_node_block_t *)temp->data)->function_num)
+			{
+				clat_print_repetitive(ctx, '\t', level + 1);
+				printf("definitions[\n");
+				for(j = 0; j < ((clat_ast_node_block_t *)temp->data)->function_num; j++)
+				{
+					clat_print_repetitive(ctx, '\t', level + 1);
+					printf("%s\n", ((clat_ast_node_block_t *)temp->data)->functions[j].identifier);
+				}
+				clat_print_repetitive(ctx, '\t', level + 1);
+				printf("]\n");
+			}
+			else
+			{
+				clat_print_repetitive(ctx, '\t', level + 1);
+				printf("[no definitions]\n");
+			}
+			
+		break;
+		case CLAT_NODE_ATOM_LITERAL:
+			printf("atm:%s\n", temp->data);
+		break;
+		case CLAT_NODE_NUMBER_LITERAL:
+			printf("num:%lf\n", *(double *)temp->data);
+		break;
+		case CLAT_NODE_STRING_LITERAL:
+			printf("str:%s\n", temp->data);
+		break;
+		case CLAT_NODE_FUNCTION_CALL:
+			printf("cal:%s\n", temp->data);
+		break;
+		case CLAT_NODE_FUNCTION_DEFINITION:
+			printf("def:%s\n", temp->data);
+		break;
+		case CLAT_NODE_REFERENCE_ATOM_LITERAL:
+			printf("ref:%s\n", temp->data);
+		break;
+		default:
+			printf("?\n");
+	}
 
 	for(i = 0; i < ast->num_children; i++)
 	{
 		temp = &ast->children[i];
-
-		clat_print_repetitive(ctx, '\t', level);
-		switch(temp->type)
-		{
-			case CLAT_NODE_BLOCK:
-				printf("block:\n");
-				if(((clat_ast_node_block_t *)temp->data)->function_num)
-				{
-					clat_print_repetitive(ctx, '\t', level + 1);
-					printf("definitions[\n");
-					for(j = 0; j < ((clat_ast_node_block_t *)temp->data)->function_num; j++)
-					{
-						clat_print_repetitive(ctx, '\t', level + 1);
-						printf("%s\n", ((clat_ast_node_block_t *)temp->data)->functions[j].identifier);
-					}
-					clat_print_repetitive(ctx, '\t', level + 1);
-					printf("]\n");
-				}
-				else
-				{
-					clat_print_repetitive(ctx, '\t', level + 1);
-					printf("no definitions\n");
-				}
-				
-			break;
-			case CLAT_NODE_ATOM_LITERAL:
-				printf("atm:%s\n", temp->data);
-			break;
-			case CLAT_NODE_NUMBER_LITERAL:
-				printf("num:%lf\n", *(double *)temp->data);
-			break;
-			case CLAT_NODE_STRING_LITERAL:
-				printf("str:%s\n", temp->data);
-			break;
-			case CLAT_NODE_FUNCTION_CALL:
-				printf("cal:%s\n", temp->data);
-			break;
-			case CLAT_NODE_FUNCTION_DEFINITION:
-				printf("def:%s\n", temp->data);
-			break;
-			case CLAT_NODE_REFERENCE_ATOM_LITERAL:
-				printf("ref:%s\n", temp->data);
-			break;
-			default:
-				printf("?\n");
-		}
 
 		clat_parse_print_internal(ctx, temp, level + 1);
 	}
