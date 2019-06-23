@@ -142,7 +142,7 @@ static int clat_lex_add_token(clat_ctx_t *ctx, clat_token_t **tokens, unsigned l
 
 clat_token_t *clat_lex_string(clat_ctx_t *ctx, char *source, unsigned long *length)
 {
-	short claimed = 0;
+	short claimed = 0, commented = 0;
 	uint8_t token;
 	clat_token_t *tokens = NULL, previous_token;
 	void *source_pos = source, *current_atom = NULL;
@@ -157,6 +157,37 @@ clat_token_t *clat_lex_string(clat_ctx_t *ctx, char *source, unsigned long *leng
 
 		switch(value)
 		{
+			/* handle comments */
+			case '#':
+				if(!commented)
+					commented = 1;
+			break;
+			case '/':
+				if(i + 1 != source_length && !commented)
+				{
+					utf8codepoint(source_pos, &value);
+					
+					if(value == '/')
+						commented = 1;
+					else if(value == '*')
+						commented = 2;
+				}
+			break;
+			case '*':
+				if(i + 1 != source_length && commented == 2)
+				{
+					utf8codepoint(source_pos, &value);
+					
+					if(value == '/')
+						commented = -1;
+				}
+			break;
+			case '\n':
+				/* only if commented is in the 1 state, it is a line comment */
+				if(commented == 1)
+					commented = -1; /* set it to the final comment state */
+			break;
+			/* regular tokens */
 			case '(':
 				claimed = 1;
 				token = CLAT_TOK_PARENTH_OPEN;
@@ -184,17 +215,21 @@ clat_token_t *clat_lex_string(clat_ctx_t *ctx, char *source, unsigned long *leng
 			case '"':
 				claimed = 1;
 				/* first, add the current atom if there was one in progress */
-				if(current_atom)
+				if(!commented)
+				{
+					if(current_atom)
 					clat_lex_add_token(ctx, &tokens, &tokens_length, CLAT_TOK_ATOM, current_atom, line);
 
-				/* add the string */
-				current_atom = clat_lex_strlit(ctx, source_pos, &skipto);
-				clat_skipto_utf8(&source_pos, skipto);
-				i+= skipto;
+					/* add the string */
+					current_atom = clat_lex_strlit(ctx, source_pos, &skipto);
+					clat_skipto_utf8(&source_pos, skipto);
+					i+= skipto;
 
-				clat_lex_add_token(ctx, &tokens, &tokens_length, CLAT_TOK_STRING, current_atom, line);
+					clat_lex_add_token(ctx, &tokens, &tokens_length, CLAT_TOK_STRING, current_atom, line);
 
-				current_atom = NULL;
+					current_atom = NULL;
+				}
+				
 			break;
 			#ifdef REMEMBER_LINES
 			case '\n':
@@ -203,7 +238,7 @@ clat_token_t *clat_lex_string(clat_ctx_t *ctx, char *source, unsigned long *leng
 			#endif
 		}
 
-		if(!claimed)
+		if(!claimed && !commented)
 		{
 			if(!is_whitespace_utf8(&value) && !current_atom)
 			{
@@ -221,7 +256,7 @@ clat_token_t *clat_lex_string(clat_ctx_t *ctx, char *source, unsigned long *leng
 				current_atom = NULL;
 			}
 		}
-		else if(claimed && current_atom)
+		else if(claimed && current_atom && !commented)
 		{
 			/* have to commit 2 tokens to the list */
 			clat_lex_add_token(ctx, &tokens, &tokens_length, CLAT_TOK_ATOM, current_atom, line);
@@ -230,11 +265,13 @@ clat_token_t *clat_lex_string(clat_ctx_t *ctx, char *source, unsigned long *leng
 			clat_lex_add_token(ctx, &tokens, &tokens_length, token, NULL, line);
 			
 		}
-		else if(claimed && value != '"')
+		else if(claimed && value != '"' && !commented)
 			clat_lex_add_token(ctx, &tokens, &tokens_length, token, NULL, line);
 
 //printf("TEMP_LEX_PROGRESS %c %lu\n", value, utf8codepointsize(value));
 		claimed = 0;
+		if(commented == -1)
+			commented = 0;
 	}
 	
 
