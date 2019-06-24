@@ -7,6 +7,22 @@
 #define CLATTER_VER_MINOR 0
 #define CLATTER_VER_REVISION 1
 
+/* UTIL TYPES */
+
+typedef struct
+{
+	uint8_t type;
+	void *key, *value;
+} clat_table_row_t;
+
+typedef struct clat_table_t
+{
+	clat_table_row_t *rows;
+	uint32_t row_num;
+	void (*compare)(uint8_t type, void *key, void *test);
+	void (*destroy)(struct clat_table_row_t *row);
+} clat_table_t;
+
 /* LEXER */
 
 enum clat_parser_options
@@ -72,7 +88,10 @@ typedef struct
 
 typedef struct
 {
+	/* ast func is 0, callback func (for C extensions) is 1 */
+	uint8_t type;
 	void *identifier;
+	/* the ast_node can be an actual node or function pointer for C */
 	void *ast_node; /* pointer to the actual function node */
 } clat_ast_function_t;
 
@@ -99,6 +118,14 @@ typedef struct clat_ast_node_t
 
 
 /* META */
+
+typedef struct
+{
+	uint32_t symbol;
+	uint8_t type;
+	void *data, *identifier;
+	uint16_t references;
+} clat_var_t;
 
 /* holds current variable symbols, their atoms/identifiers (really only globals retain their text), and AST execution flags) */
 typedef struct

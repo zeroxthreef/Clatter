@@ -25,4 +25,10 @@ ssize_t clat_write_file(clat_ctx_t *ctx, uint8_t data, const char *path, size_t 
 
 short clat_read_bitflag(uint64_t value, short bit);
 
+int clat_realloc_array(void **ptr, size_t currentNum, size_t wantNum, size_t sizeOfIndividualObject);
+
+int clat_remove_array_entry(void **ptr, size_t currentNum, size_t positionToRemove, size_t sizeOfIndividualObject);
+
+int clat_add_array_entry(void **ptr, size_t currentNum, void *objectPtr, size_t sizeOfIndividualObject);
+
 #endif

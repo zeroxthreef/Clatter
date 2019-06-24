@@ -10,7 +10,7 @@ helloFunction("world" 4)
 //the actual definition of the function
 helloFunction(noun times):
 {
-	for({=(1 0)} {<(i times)} {=(i +(i 1))})
+	for({=(i 0)} {<(i times)} {=(i +(i 1))})
 	{
 		printsp("hello" noun)
 	}

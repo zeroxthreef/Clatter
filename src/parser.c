@@ -304,6 +304,7 @@ int clat_parse_finalize_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 
 				((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].identifier = temp->children[j].data;
 				((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].ast_node = &temp->children[j];
+				((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].type = 0;
 
 				((clat_ast_node_block_t *)temp->data)->function_num++;
 			}
