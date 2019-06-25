@@ -19,8 +19,8 @@ typedef struct clat_table_t
 {
 	clat_table_row_t *rows;
 	uint32_t row_num;
-	void (*compare)(uint8_t type, void *key, void *test);
-	void (*destroy)(struct clat_table_row_t *row);
+	uint8_t (*compare)(uint8_t type, void *key, void *test);
+	void (*destroy)(void *row_struct);
 } clat_table_t;
 
 /* LEXER */

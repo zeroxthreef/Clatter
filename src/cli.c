@@ -32,6 +32,8 @@ switch(2)
 }
 */
 
+void testtable();
+
 int main(int argc, char **argv)
 {
 	clat_ctx_t ctx;
@@ -74,7 +76,7 @@ int main(int argc, char **argv)
 	{
 		/* repl mode */
 		printf("%s\nREPL mode\n\nusage:\n\tto quit, type \"exit()\" and press enter\n\tfunctions have to have the colon on the same line, ex \"beep(status):\". Otherwise, REPL mode will interpret it as a function call\n\n", fancy_name);
-
+testtable();
 		return 0;
 	}
 
@@ -97,11 +99,41 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-
+		/* regular execute file */
 	}
 
-	
+	return 0;
+}
 
+uint8_t compare(uint8_t type, void *key, void *test)
+{
 
 	return 0;
+}
+
+void destroy(void *row_struct)
+{
+
+}
+
+void testtable()
+{
+	clat_table_t *table;
+
+	printf("table testing\n");
+
+	if(clat_table_init(&table, &compare, &destroy))
+	{
+		printf("err init array\n");
+	}
+
+	if(clat_table_add_row(table, 0, "oof", "testo"))
+	{
+		printf("err add\n");
+	}
+
+	if(clat_table_destroy(table))
+	{
+		printf("err destroy\n");
+	}
 }

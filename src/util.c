@@ -155,7 +155,7 @@ void clat_print_repetitive(clat_ctx_t *ctx, char ch, int num)
 int clat_determine_if_number(clat_ctx_t *ctx, void *value)
 {
 	unsigned int i;
-	long code_p = 0;
+	utf8_int32_t code_p = 0;
 
 	/* TODO TODO TODO ALLOW HEX CHARS TO NOT CATCH IT OFF GUARD */
 
@@ -324,7 +324,7 @@ int clat_add_array_entry(void **ptr, size_t currentNum, void *objectPtr, size_t 
 	return 0;
 }
 
-int clat_init_table(clat_table_t **table, void (*compare)(uint8_t type, void *key, void *test), void (*destroy)(struct clat_table_row_t *row))
+int clat_table_init(clat_table_t **table, uint8_t (*compare)(uint8_t type, void *key, void *test), void (*destroy)(void *row_struct))
 {
 	if(!(*table = calloc(1, sizeof(clat_table_t))))
 	{
@@ -332,30 +332,73 @@ int clat_init_table(clat_table_t **table, void (*compare)(uint8_t type, void *ke
 		return 1;
 	}
 
-	
+	(*table)->compare = compare;
+	(*table)->destroy = destroy;
+	(*table)->rows = NULL;
 
 	return 0;
 }
 
-int clat_destroy_table(clat_table_t *table)
+int clat_table_destroy(clat_table_t *table)
 {
+	unsigned long i;
+
+	for(i = 0; i < table->row_num; i++)
+		table->destroy(&table->rows[i]);
+
+
+	free(table->rows);
+	free(table);
+
 
 	return 0;
 }
 
-int clat_add_table_row(clat_table_t *table, uint8_t type, void *key, void *value)
+int clat_table_add_row(clat_table_t *table, uint8_t type, void *key, void *value)
 {
+	clat_table_row_t row;
+	memset(&table, 0, sizeof(clat_table_row_t));
+
+	row.key = key;
+	row.type = type;
+	row.value = value;
+
+	if(clat_add_array_entry((void **)&table->rows, table->row_num, &row, sizeof(clat_table_row_t)))
+	{
+		/* handle error maybe? */
+		return 1;
+	}
 
 	return 0;
 }
 
-int clat_remove_table_row(clat_table_t *table)
+int clat_table_remove_row(clat_table_t *table, unsigned long row)
 {
-
+	if(clat_remove_array_entry((void **)&table->rows, table->row_num, row, sizeof(clat_table_row_t)))
+	{
+		/* handle error? */
+		return 1;
+	}
 	return 0;
 }
 
-void *clat_value_at(clat_table_t *table)
+void *clat_table_value_at(clat_table_t *table, void *key, unsigned long *position)
 {
+	unsigned long i;
+	void *ret = NULL;
 
+	for(i = 0; i < table->row_num; i++)
+	{
+		if(table->compare(table->rows[i].type, table->rows[i].key, key))
+		{
+			if(position)
+				*position = i;
+			
+			ret = table->rows[i].value;
+
+			break;
+		}
+	}
+
+	return ret;
 }

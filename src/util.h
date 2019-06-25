@@ -31,4 +31,14 @@ int clat_remove_array_entry(void **ptr, size_t currentNum, size_t positionToRemo
 
 int clat_add_array_entry(void **ptr, size_t currentNum, void *objectPtr, size_t sizeOfIndividualObject);
 
+int clat_table_init(clat_table_t **table, uint8_t (*compare)(uint8_t type, void *key, void *test), void (*destroy)(void *row_struct));
+
+int clat_table_destroy(clat_table_t *table);
+
+int clat_table_add_row(clat_table_t *table, uint8_t type, void *key, void *value);
+
+int clat_table_remove_row(clat_table_t *table, unsigned long row);
+
+void *clat_table_value_at(clat_table_t *table, void *key, unsigned long *position);
+
 #endif
