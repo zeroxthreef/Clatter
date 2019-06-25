@@ -372,7 +372,7 @@ int clat_table_destroy(clat_table_t *table)
 int clat_table_add_row(clat_table_t *table, uint8_t type, void *key, void *value)
 {
 	clat_table_row_t row;
-	memset(&table, 0, sizeof(clat_table_row_t));
+	memset(&row, 0, sizeof(clat_table_row_t));
 
 	row.key = key;
 	row.type = type;
@@ -384,7 +384,17 @@ int clat_table_add_row(clat_table_t *table, uint8_t type, void *key, void *value
 		return 1;
 	}
 
+	table->row_num++;
+
 	return 0;
+}
+
+int clat_table_add_row_hash(clat_table_t *table, uint8_t type, char *key, void *value)
+{
+	uint64_t *hkey = calloc(1, sizeof(uint64_t));
+	*hkey = clat_hash(key);
+	
+	return clat_table_add_row(table, type, hkey, value);
 }
 
 int clat_table_remove_row(clat_table_t *table, unsigned long row)
@@ -394,8 +404,12 @@ int clat_table_remove_row(clat_table_t *table, unsigned long row)
 		/* handle error? */
 		return 1;
 	}
+
+	table->row_num--;
+
 	return 0;
 }
+
 
 void *clat_table_value_at(clat_table_t *table, void *key, unsigned long *position)
 {
@@ -416,4 +430,24 @@ void *clat_table_value_at(clat_table_t *table, void *key, unsigned long *positio
 	}
 
 	return ret;
+}
+
+void *clat_table_value_at_hash(clat_table_t *table, char *key, unsigned long *position)
+{
+	void *ret = NULL;
+	uint64_t *hkey = calloc(1, sizeof(uint64_t));
+	*hkey = clat_hash(key);
+
+	ret = clat_table_value_at(table, hkey, position);
+
+	free(hkey);
+
+	return ret;
+}
+
+uint8_t clat_table_default_hash_compare(uint8_t type, void *key, void *test)
+{
+	if(*(uint64_t *)test == *(uint64_t *)key)
+		return 1;
+	return 0;
 }

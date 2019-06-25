@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	{
 		/* repl mode */
 		printf("%s\nREPL mode\n\nusage:\n\tto quit, type \"exit()\" and press enter\n\tfunctions have to have the colon on the same line, ex \"beep(status):\". Otherwise, REPL mode will interpret it as a function call\n\n", fancy_name);
-testtable();
+		/* testtable(); */
 		return 0;
 	}
 
@@ -105,15 +105,14 @@ testtable();
 	return 0;
 }
 
-uint8_t compare(uint8_t type, void *key, void *test)
-{
-
-	return 0;
-}
-
+/*
 void destroy(void *row_struct)
 {
+	clat_table_row_t *row = row_struct;
 
+	printf("deleting\n");
+
+	free(row->key);
 }
 
 void testtable()
@@ -122,18 +121,28 @@ void testtable()
 
 	printf("table testing\n");
 
-	if(clat_table_init(&table, &compare, &destroy))
+	if(clat_table_init(&table, &clat_table_default_hash_compare, &destroy))
 	{
 		printf("err init array\n");
 	}
 
-	if(clat_table_add_row(table, 0, "oof", "testo"))
+	if(!table)
+	{
+		printf("thats a problem\n");
+	}
+	
+	if(clat_table_add_row_hash(table, 0, "key1", "testo") || clat_table_add_row_hash(table, 0, "key2", "testo"))
 	{
 		printf("err add\n");
 	}
+
+	printf("value: %s\n", clat_table_value_at_hash(table, "key2", NULL));
+
+	printf("hash %x\n", clat_hash("test"));
 
 	if(clat_table_destroy(table))
 	{
 		printf("err destroy\n");
 	}
 }
+*/

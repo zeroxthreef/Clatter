@@ -37,10 +37,16 @@ int clat_table_init(clat_table_t **table, uint8_t (*compare)(uint8_t type, void 
 
 int clat_table_destroy(clat_table_t *table);
 
+int clat_table_add_row_hash(clat_table_t *table, uint8_t type, char *key, void *value);
+
 int clat_table_add_row(clat_table_t *table, uint8_t type, void *key, void *value);
 
 int clat_table_remove_row(clat_table_t *table, unsigned long row);
 
 void *clat_table_value_at(clat_table_t *table, void *key, unsigned long *position);
+
+void *clat_table_value_at_hash(clat_table_t *table, char *key, unsigned long *position);
+
+uint8_t clat_table_default_hash_compare(uint8_t type, void *key, void *test);
 
 #endif
