@@ -324,6 +324,21 @@ int clat_add_array_entry(void **ptr, size_t currentNum, void *objectPtr, size_t 
 	return 0;
 }
 
+/* this is FNV-1a */
+uint64_t clat_hash(char *string)
+{
+	uint64_t hash = FNV_OFFSET;
+	unsigned long i;
+
+	for(i = 0; i < strlen(string); i++)
+	{
+		hash ^= string[i];
+		hash *= FNV_PRIME;
+	}
+
+	return hash;
+}
+
 int clat_table_init(clat_table_t **table, uint8_t (*compare)(uint8_t type, void *key, void *test), void (*destroy)(void *row_struct))
 {
 	if(!(*table = calloc(1, sizeof(clat_table_t))))

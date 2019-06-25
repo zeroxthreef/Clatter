@@ -8,6 +8,8 @@
 #define CLATTER_VER_REVISION 1
 
 /* UTIL TYPES */
+#define FNV_OFFSET 0xcbf29ce484222325LL
+#define FNV_PRIME 0x100000001b3LL
 
 typedef struct
 {
