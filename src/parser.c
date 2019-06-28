@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int clat_parse_string(clat_ctx_t *ctx, char *source, uint32_t flags)
+int clat_parse_string(clat_ctx_t *ctx, clat_ast_node_t **ast, char *source, uint32_t flags)
 {
 	clat_token_t *tokens = NULL;
 	unsigned long tokens_length = 0;
@@ -29,8 +29,8 @@ int clat_parse_string(clat_ctx_t *ctx, char *source, uint32_t flags)
 
 
 	/* check if the ast is null as a test of whether or not to add utils */
-	if(!ctx->root)
-		if(clat_parse_init_ast(ctx, &ctx->root))
+	if(!*ast)
+		if(clat_parse_init_ast(ctx, ast))
 		{
 			/* handle error */
 			return 1;
@@ -56,14 +56,14 @@ int clat_parse_string(clat_ctx_t *ctx, char *source, uint32_t flags)
 	*/
 
 
-	if(clat_parse_generate_ast(ctx, tokens, ctx->root, tokens_length, 0) == -1)
+	if(clat_parse_generate_ast(ctx, tokens, *ast, tokens_length, 0) == -1)
 	{
 		/* handle error */
 		printf("big error\n");
 		return 1;
 	}
 
-	if(clat_parse_finalize_ast(ctx, ctx->root))
+	if(clat_parse_finalize_ast(ctx, *ast))
 	{
 		/* handle error */
 		return 1;

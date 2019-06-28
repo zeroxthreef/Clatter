@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 	char *file = NULL;
 	size_t file_size;
 
-	memset(&ctx, 0, sizeof(clat_ctx_t));
+	clat_initialize(&ctx);
 
 	/* determine if it will enter REPL mode or execute from file */
 	/* commands are help, print ast and tokens after parsing, and printing the version */
@@ -77,6 +77,8 @@ int main(int argc, char **argv)
 		/* repl mode */
 		printf("%s\nREPL mode\n\nusage:\n\tto quit, type \"exit()\" and press enter\n\tfunctions have to have the colon on the same line, ex \"beep(status):\". Otherwise, REPL mode will interpret it as a function call\n\n", fancy_name);
 		/* testtable(); */
+
+		clat_cleanup(&ctx);
 		return 0;
 	}
 
@@ -92,7 +94,7 @@ int main(int argc, char **argv)
 			return 1;
 		}
 		printf("tokens:\n\n");
-		clat_compile_string(&ctx, file, CLAT_PARSE_DEBUG);
+		clat_compile_string(&ctx, file, CLAT_PARSE_DEBUG, CLAT_STDLIB_FULL);
 
 		printf("AST:\n\n");
 		clat_parse_print(&ctx, ctx.root);
@@ -102,6 +104,9 @@ int main(int argc, char **argv)
 		/* regular execute file */
 	}
 
+	
+
+	clat_cleanup(&ctx);
 	return 0;
 }
 

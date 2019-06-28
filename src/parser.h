@@ -3,7 +3,7 @@
 
 #include "types.h"
 
-int clat_parse_string(clat_ctx_t *ctx, char *source, uint32_t flags);
+int clat_parse_string(clat_ctx_t *ctx, clat_ast_node_t **ast, char *source, uint32_t flags);
 
 int clat_parse_init_ast(clat_ctx_t *ctx, clat_ast_node_t **ast);
 

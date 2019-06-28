@@ -76,6 +76,7 @@ enum clat_types
 	CLAT_TYPE_NUMBER,
 	CLAT_TYPE_STRING,
 	CLAT_TYPE_MAPPING,
+	CLAT_TYPE_FUNCTION,
 	CLAT_TYPE_ATOM,
 	CLAT_TYPE_POINTER,
 	CLAT_TYPE_PROGRAM,
@@ -129,17 +130,39 @@ typedef struct
 	uint16_t references;
 } clat_var_t;
 
-/* holds current variable symbols, their atoms/identifiers (really only globals retain their text), and AST execution flags) */
-typedef struct
-{
-
-} clat_state_t;
-
 typedef struct
 {
 	clat_ast_node_t *root;
 	/* make a list of functions */
 	void *user_data;
+	clat_table_t *symbols;
 } clat_ctx_t;
+
+enum clat_lang_table_types
+{
+	CLAT_TABLE_TYPE_CALLBACK,
+	CLAT_TABLE_TYPE_VARIABLE,
+	CLAT_TABLE_TYPE_FUNCTION
+};
+
+enum clat_callback_flags
+{
+	CLAT_CALLBACK_REGULAR,
+	CLAT_CALLBACK_WANT_LAST_RETURN = 1,
+	CLAT_CALLBACK_WANT_NEXT_BLOCK = 2
+};
+
+enum clat_stdlib_flags
+{
+	CLAT_STDLIB_BARE,
+	CLAT_STDLIB_BASE,
+	CLAT_STDLIB_FULL
+};
+
+typedef struct
+{
+	clat_val_t(*clat_callback)(clat_ctx_t *ctx, clat_val_t *arguments, uint16_t argument_num);
+	uint8_t flags;
+} clat_callback_t;
 
 #endif
