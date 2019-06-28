@@ -77,7 +77,10 @@ clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 	value.type = CLAT_TYPE_NUMBER;
 	value.value = NULL;
 
-	
+	switch(ast->type)
+	{
+		
+	}
 
 
 

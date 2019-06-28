@@ -451,3 +451,32 @@ uint8_t clat_table_default_hash_compare(uint8_t type, void *key, void *test)
 		return 1;
 	return 0;
 }
+
+int clat_destroy_value(clat_ctx_t *ctx, clat_val_t value)
+{
+	if(value.value)
+		free(value.value);
+	
+	return 0;
+}
+
+clat_val_t clat_double_to_value(clat_ctx_t *ctx, double value)
+{
+	clat_val_t ret;
+
+	ret.type = CLAT_TYPE_NUMBER;
+	ret.value = malloc(sizeof(double));
+
+	*(double *)ret.value = value;
+
+	return ret;
+}
+
+double clat_value_to_double(clat_ctx_t *ctx, clat_val_t value)
+{
+	/* TODO determine how to handle non-numeric types */
+	if(value.type == CLAT_TYPE_NUMBER)
+		return *(double *)value.value;
+	else
+		return 0;
+}

@@ -49,4 +49,10 @@ void *clat_table_value_at_hash(clat_table_t *table, char *key, unsigned long *po
 
 uint8_t clat_table_default_hash_compare(uint8_t type, void *key, void *test);
 
+int clat_destroy_value(clat_ctx_t *ctx, clat_val_t value);
+
+clat_val_t clat_double_to_value(clat_ctx_t *ctx, double value);
+
+double clat_value_to_double(clat_ctx_t *ctx, clat_val_t value);
+
 #endif

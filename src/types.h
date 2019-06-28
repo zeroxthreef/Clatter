@@ -107,9 +107,9 @@ typedef struct
 
 typedef struct
 {
-	/* NOTE make an array of functions inside the block */
 	uint32_t symbol;
-} clat_ast_node_func_def_t;
+	void *identifier;
+} clat_ast_node_func_call_t;
 
 typedef struct clat_ast_node_t
 {

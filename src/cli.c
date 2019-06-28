@@ -37,6 +37,7 @@ void testtable();
 int main(int argc, char **argv)
 {
 	clat_ctx_t ctx;
+	clat_val_t ret;
 	unsigned long i;
 	uint8_t print_debug = 0;
 	char *file = NULL;
@@ -102,6 +103,7 @@ int main(int argc, char **argv)
 	else
 	{
 		/* regular execute file */
+		ret = clat_eval_string(&ctx, file);
 	}
 
 	

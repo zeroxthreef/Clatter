@@ -233,7 +233,14 @@ unsigned long clat_parse_generate_ast(clat_ctx_t *ctx, clat_token_t *tokens, cla
 			else /* its a call, so we can just exit this node */
 			{
 				if(parent->type == CLAT_NODE_FUNCTION_INDETERMINATE)
+				{
 					parent->type = CLAT_NODE_FUNCTION_CALL;
+					clat_ast_node_func_call_t *call = calloc(1, sizeof(clat_ast_node_func_call_t));
+
+					call->identifier = parent->data;
+					parent->data = call;
+				}
+					
 
 				new_pos = i;
 				break;
@@ -362,7 +369,7 @@ static void clat_parse_print_internal(clat_ctx_t *ctx, clat_ast_node_t *ast, uns
 			printf("str:%s\n", temp->data);
 		break;
 		case CLAT_NODE_FUNCTION_CALL:
-			printf("cal:%s\n", temp->data);
+			printf("cal:%s\n", ((clat_ast_node_func_call_t *)temp->data)->identifier);
 		break;
 		case CLAT_NODE_FUNCTION_DEFINITION:
 			printf("def:%s\n", temp->data);
