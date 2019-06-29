@@ -31,11 +31,15 @@ int clat_remove_array_entry(void **ptr, size_t currentNum, size_t positionToRemo
 
 int clat_add_array_entry(void **ptr, size_t currentNum, void *objectPtr, size_t sizeOfIndividualObject);
 
+void *clat_memdup(void *src, size_t size);
+
 uint64_t clat_hash(char *string);
 
 int clat_table_init(clat_table_t **table, uint8_t (*compare)(uint8_t type, void *key, void *test), void (*destroy)(void *row_struct));
 
 int clat_table_destroy(clat_table_t *table);
+
+int clat_table_clear(clat_table_t *table);
 
 int clat_table_add_row_hash(clat_table_t *table, uint8_t type, char *key, void *value);
 
@@ -54,5 +58,13 @@ int clat_destroy_value(clat_ctx_t *ctx, clat_val_t value);
 clat_val_t clat_double_to_value(clat_ctx_t *ctx, double value);
 
 double clat_value_to_double(clat_ctx_t *ctx, clat_val_t value);
+
+clat_val_t clat_string_to_value(clat_ctx_t *ctx, char *value);
+
+char *clat_value_to_string(clat_ctx_t *ctx, clat_val_t value);
+
+int clat_reference_count_inc(clat_ctx_t *ctx, unsigned long position);
+
+int clat_reference_count_dec(clat_ctx_t *ctx, unsigned long position);
 
 #endif

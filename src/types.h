@@ -73,6 +73,7 @@ enum clat_nodes
 
 enum clat_types
 {
+	CLAT_TYPE_NONE,
 	CLAT_TYPE_NUMBER,
 	CLAT_TYPE_STRING,
 	CLAT_TYPE_MAPPING,
@@ -93,6 +94,7 @@ typedef struct
 {
 	/* ast func is 0, callback func (for C extensions) is 1 */
 	uint8_t type;
+	uint32_t symbol;
 	void *identifier;
 	/* the ast_node can be an actual node or function pointer for C */
 	void *ast_node; /* pointer to the actual function node */
@@ -101,6 +103,7 @@ typedef struct
 typedef struct
 {
 	/* resolve symbols at execute time */
+	/* TODO add static var table */
 	clat_ast_function_t *functions;
 	uint32_t function_num;
 } clat_ast_node_block_t;
@@ -124,10 +127,22 @@ typedef struct clat_ast_node_t
 
 typedef struct
 {
-	uint32_t symbol;
-	uint8_t type;
-	void *data, *identifier;
+	/* dont need to keep track of weak references at all */
 	uint16_t references;
+	clat_val_t value;
+} clat_object_t;
+
+typedef struct
+{
+	clat_object_t *objects;
+	uint32_t object_num;
+} clat_object_list_t;
+
+typedef struct
+{
+	uint32_t symbol;
+	clat_object_t *object;
+	void *identifier;
 } clat_var_t;
 
 typedef struct
@@ -136,12 +151,19 @@ typedef struct
 	/* make a list of functions */
 	void *user_data;
 	clat_table_t *symbols;
+	/* "locals" are the immediate locals.
+	This is used to keep track of local
+	ifetimes of variables declared inside */
+	clat_table_t *locals;
+	clat_object_list_t objects;
+	
 } clat_ctx_t;
 
 enum clat_lang_table_types
 {
 	CLAT_TABLE_TYPE_CALLBACK,
 	CLAT_TABLE_TYPE_VARIABLE,
+	CLAT_TABLE_TYPE_STATIC_VARIABLE,
 	CLAT_TABLE_TYPE_FUNCTION
 };
 

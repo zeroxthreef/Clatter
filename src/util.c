@@ -324,6 +324,16 @@ int clat_add_array_entry(void **ptr, size_t currentNum, void *objectPtr, size_t 
 	return 0;
 }
 
+void *clat_memdup(void *src, size_t size)
+{
+	void *ret = malloc(size);
+
+	if(ret)
+		memmove(ret, src, size);
+
+	return ret;
+}
+
 /* this is FNV-1a */
 uint64_t clat_hash(char *string)
 {
@@ -356,14 +366,20 @@ int clat_table_init(clat_table_t **table, uint8_t (*compare)(uint8_t type, void 
 
 int clat_table_destroy(clat_table_t *table)
 {
+	clat_table_clear(table);
+
+	free(table->rows);
+	free(table);
+
+	return 0;
+}
+
+int clat_table_clear(clat_table_t *table)
+{
 	unsigned long i;
 
 	for(i = 0; i < table->row_num; i++)
 		table->destroy(&table->rows[i]);
-
-
-	free(table->rows);
-	free(table);
 
 
 	return 0;
@@ -474,9 +490,54 @@ clat_val_t clat_double_to_value(clat_ctx_t *ctx, double value)
 
 double clat_value_to_double(clat_ctx_t *ctx, clat_val_t value)
 {
-	/* TODO determine how to handle non-numeric types */
-	if(value.type == CLAT_TYPE_NUMBER)
+	/* TODO determine how to handle non-numeric types. DO NOT
+	USE THESE FOR TYPECASTING NOTE NOTE NOTE */
+	if(value.type == CLAT_TYPE_STRING)
 		return *(double *)value.value;
 	else
 		return 0;
+}
+
+clat_val_t clat_string_to_value(clat_ctx_t *ctx, char *value)
+{
+	clat_val_t ret;
+
+	ret.type = CLAT_TYPE_STRING;
+	ret.value = utf8dup(value);
+
+	return ret;
+}
+
+char *clat_value_to_string(clat_ctx_t *ctx, clat_val_t value)
+{
+	/* TODO determine how to handle non-numeric types */
+	if(value.type == CLAT_TYPE_STRING)
+		return value.value;
+	else
+		return 0;
+}
+
+
+/* reference counting utils */
+
+int clat_reference_count_inc(clat_ctx_t *ctx, unsigned long position)
+{
+	ctx->objects.objects[position].references++;
+	return 0;
+}
+
+int clat_reference_count_dec(clat_ctx_t *ctx, unsigned long position)
+{
+	/* if reference count reaches 0, free the variable and remove it from the table */
+	ctx->objects.objects[position].references--;
+
+	if(ctx->objects.objects[position].references < 1)
+		if(clat_remove_array_entry(&ctx->objects.objects, ctx->objects.object_num, position, sizeof(clat_object_t)))
+		{
+			/* TODO handle error */
+			return 1;
+		}
+
+	
+	return 0;
 }

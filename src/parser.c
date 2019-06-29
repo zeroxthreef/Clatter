@@ -238,6 +238,7 @@ unsigned long clat_parse_generate_ast(clat_ctx_t *ctx, clat_token_t *tokens, cla
 					clat_ast_node_func_call_t *call = calloc(1, sizeof(clat_ast_node_func_call_t));
 
 					call->identifier = parent->data;
+					call->symbol = clat_hash(call->identifier);
 					parent->data = call;
 				}
 					
@@ -312,6 +313,7 @@ int clat_parse_finalize_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 				((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].identifier = temp->children[j].data;
 				((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].ast_node = &temp->children[j];
 				((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].type = 0;
+				((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].symbol = clat_hash(((clat_ast_node_block_t *)temp->data)->functions[((clat_ast_node_block_t *)temp->data)->function_num].identifier);
 
 				((clat_ast_node_block_t *)temp->data)->function_num++;
 			}
@@ -347,7 +349,7 @@ static void clat_parse_print_internal(clat_ctx_t *ctx, clat_ast_node_t *ast, uns
 				for(j = 0; j < ((clat_ast_node_block_t *)temp->data)->function_num; j++)
 				{
 					clat_print_repetitive(ctx, '\t', level + 1);
-					printf("%s\n", ((clat_ast_node_block_t *)temp->data)->functions[j].identifier);
+					printf("%s, sym: %u\n", ((clat_ast_node_block_t *)temp->data)->functions[j].identifier, ((clat_ast_node_block_t *)temp->data)->functions[j].symbol);
 				}
 				clat_print_repetitive(ctx, '\t', level + 1);
 				printf("]\n");
@@ -369,7 +371,7 @@ static void clat_parse_print_internal(clat_ctx_t *ctx, clat_ast_node_t *ast, uns
 			printf("str:%s\n", temp->data);
 		break;
 		case CLAT_NODE_FUNCTION_CALL:
-			printf("cal:%s\n", ((clat_ast_node_func_call_t *)temp->data)->identifier);
+			printf("cal:%s, sym: %u\n", ((clat_ast_node_func_call_t *)temp->data)->identifier, ((clat_ast_node_func_call_t *)temp->data)->symbol);
 		break;
 		case CLAT_NODE_FUNCTION_DEFINITION:
 			printf("def:%s\n", temp->data);

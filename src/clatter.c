@@ -16,7 +16,12 @@ static void clat_internal_destroy(void *row_struct)
 {
 	clat_table_row_t *row = row_struct;
 
+	/* TODO handle this better */
+	/*
+	if((*(clat_val_t *)row->value).value)
+		free((*(clat_val_t *)row->value).value);
 	free(row->value);
+	*/
 	free(row->key);
 }
 
@@ -73,16 +78,92 @@ clat_val_t clat_eval_string(clat_ctx_t *ctx, char *source)
 
 clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 {
+	unsigned long i;
 	clat_val_t value;
-	value.type = CLAT_TYPE_NUMBER;
+	clat_ast_node_t *temp = NULL;
+	clat_var_t variable;
+	clat_object_t object;
+	value.type = CLAT_TYPE_NONE;
 	value.value = NULL;
 
-	switch(ast->type)
+	/* NOTE if the TABLE TYPE IS CLAT_TABLE_TYPE_STATIC_VARIABLE, THEN DO NOOOOT FREE VALUE. This is how static vars retain their data */
+
+	/* first, if we've entered a block, that means we need to add the function symbols to the symbol list */
+	if(ast->type == CLAT_NODE_BLOCK)
 	{
+		for(i = 0; i < ((clat_ast_node_block_t *)ast->data)->function_num; i++)
+		{
+			memset(&variable, 0, sizeof(clat_var_t));
+			memset(&object, 0, sizeof(clat_object_t));
+
+			/* add object to list and also to the symbol table */
+
+			object.value.value = ((clat_ast_node_block_t *)ast->data)->functions[i].ast_node;
+			object.value.type = CLAT_TYPE_FUNCTION;
+			object.references = 1;	
+
+
+			if(clat_add_array_entry(&ctx->objects.objects, ctx->objects.object_num, &object, sizeof(clat_object_t)))
+			{
+				/* TODO handle error */
+				return value;
+			}
+
+			variable.symbol = ((clat_ast_node_block_t *)ast->data)->functions[i].symbol;
+			variable.identifier = ((clat_ast_node_block_t *)ast->data)->functions[i].identifier;
+
+
+			if(clat_table_add_row(ctx->locals, CLAT_TABLE_TYPE_FUNCTION, clat_memdup(&variable.symbol, sizeof(uint32_t)), NULL))
+			{
+				/* TODO handle error */
+				return value;
+			}
+
+			if(clat_table_add_row(ctx->symbols, CLAT_TABLE_TYPE_FUNCTION, clat_memdup(&variable.symbol, sizeof(uint32_t)), clat_memdup(&variable, sizeof(clat_var_t))))
+			{
+				/* TODO handle error */
+				return value;
+			}
+
+			ctx->objects.object_num++;
+		}
+	}
+
+	for(i = 0; i < ast->num_children; i++)
+	{
+		/* only care about getting return values from calls, literals, and blocks */
+
+		/* test if its adding arguments to a function call and add variables of the same name to the
+		symbol table */
+		if(ast->children[i].type == CLAT_NODE_FUNCTION_CALL)
+		{
+
+		}
+		else if(ast->children[i].type != CLAT_NODE_FUNCTION_DEFINITION)
+			value = clat_execute_ast(ctx, &ast->children[i]);
 		
+		if(ast->type == CLAT_NODE_FUNCTION_CALL)
+		{
+			/* look at the definition and make new vars */
+		}
 	}
 
 
+	switch(ast->type)
+	{
+		case CLAT_NODE_NUMBER_LITERAL:
+			value = clat_double_to_value(ctx, *(double *)ast->data);
+		break;
+		case CLAT_NODE_STRING_LITERAL:
+			value = clat_string_to_value(ctx, ast->data);
+		break;
+		case CLAT_NODE_ATOM_LITERAL:
+			value = clat_string_to_value(ctx, ast->data);
+		break;
+		/* TODO handle references */
+	}
+
+	/* clear locally added variables */
 
 
 	return value;
@@ -92,9 +173,16 @@ int clat_initialize(clat_ctx_t *ctx)
 {
 
 	memset(ctx, 0, sizeof(clat_ctx_t));
+	memset(&ctx->objects, 0, sizeof(clat_object_list_t));
 
 
 	if(clat_table_init(&ctx->symbols, &clat_internal_symbol_compare, &clat_internal_destroy))
+	{
+		/* TODO handle error */
+		return 1;
+	}
+
+	if(clat_table_init(&ctx->locals, &clat_internal_symbol_compare, &clat_internal_destroy))
 	{
 		/* TODO handle error */
 		return 1;
@@ -109,6 +197,7 @@ int clat_cleanup(clat_ctx_t *ctx)
 	/* clean up the AST and other allocated contents */
 
 	clat_table_destroy(ctx->symbols);
+	clat_table_destroy(ctx->locals);
 
 	return 0;
 }
