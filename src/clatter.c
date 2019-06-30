@@ -5,6 +5,7 @@
 #include "parser.h"
 
 #include "stdlib/clat_stdlib.h"
+#include "utf8.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -71,18 +72,20 @@ clat_val_t clat_eval_string(clat_ctx_t *ctx, char *source)
 
 	/* now execute */
 
-	value = clat_execute_ast(ctx, ctx->root);
+	value = clat_execute_ast(ctx, ctx->root, NULL, value);
 
 	return value;
 }
 
-clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
+clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast, clat_ast_node_t *next, clat_val_t last_value)
 {
-	unsigned long i;
-	clat_val_t value;
+	unsigned long i, argument_num = 0;
+	clat_val_t value, *arguments = NULL;
 	clat_ast_node_t *temp = NULL;
 	clat_var_t variable;
 	clat_object_t object;
+	clat_table_row_t *row = NULL;
+	uint8_t arg_flags = 0;
 	value.type = CLAT_TYPE_NONE;
 	value.value = NULL;
 
@@ -100,7 +103,7 @@ clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 
 			object.value.value = ((clat_ast_node_block_t *)ast->data)->functions[i].ast_node;
 			object.value.type = CLAT_TYPE_FUNCTION;
-			object.references = 1;	
+			clat_reference_count_inc(ctx, ctx->objects.object_num);
 
 
 			if(clat_add_array_entry(&ctx->objects.objects, ctx->objects.object_num, &object, sizeof(clat_object_t)))
@@ -128,6 +131,47 @@ clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 			ctx->objects.object_num++;
 		}
 	}
+	else if(ast->type == CLAT_NODE_FUNCTION_CALL)
+	{
+		/* check if it asks for previous val and/or next block */
+		/* for c functions check for flags, for clatter functions check for __PREVRES and __BLK */
+		if(!(row = clat_table_row_at(ctx->symbols, &((clat_ast_node_func_call_t *)ast->data)->symbol)))
+		{
+			/* TODO handle error */
+			printf("CRITICAL SYMBOL TABLE ERROR\n");
+			return value;
+		}
+		
+
+
+		if(row->type == CLAT_TABLE_TYPE_CALLBACK)
+		{
+			arg_flags = ((clat_callback_t *)row->value)->flags;
+			argument_num = ast->num_children + clat_read_bitflag(arg_flags, CLAT_CALLBACK_WANT_LAST_RETURN) + clat_read_bitflag(arg_flags, CLAT_CALLBACK_WANT_NEXT_BLOCK);
+
+			arguments = malloc(argument_num * sizeof(clat_val_t));
+/* ============================================================================================================================================ */
+			/* TODO handle block types */
+			//arguments[argument_num - 1] = ; next_value
+		}
+		else if(row->type == CLAT_TABLE_TYPE_FUNCTION)
+		{
+			/* check for the aformentioned 2 cases of special arguments */
+			for(i = 0; i < ((clat_ast_node_t *)row->value)->num_children - 1; i++)
+			{
+				if(((clat_ast_node_t *)row->value)->children[i].type != CLAT_NODE_ATOM_LITERAL)
+				{
+					/* TODO handle error */
+					return value;
+				}
+
+				if(utf8cmp(((clat_ast_node_t *)row->value)->children[i].data, "__PREVRES") == 0)
+					arg_flags |= CLAT_CALLBACK_WANT_LAST_RETURN;
+				else if(utf8cmp(((clat_ast_node_t *)row->value)->children[i].data, "__BLK") == 0)
+					arg_flags |= CLAT_CALLBACK_WANT_NEXT_BLOCK;
+			}
+		}
+	}
 
 	for(i = 0; i < ast->num_children; i++)
 	{
@@ -135,16 +179,30 @@ clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 
 		/* test if its adding arguments to a function call and add variables of the same name to the
 		symbol table */
-		if(ast->children[i].type == CLAT_NODE_FUNCTION_CALL)
+		//if(ast->children[i].type == CLAT_NODE_FUNCTION_CALL)
 		{
-
+			//value = clat_execute_ast(ctx, &ast->children[i], i + 1 < ast->num_children ? &ast->children[i + 1] : NULL, last_value);
 		}
-		else if(ast->children[i].type != CLAT_NODE_FUNCTION_DEFINITION)
-			value = clat_execute_ast(ctx, &ast->children[i]);
+		/*else*/ if(ast->children[i].type != CLAT_NODE_FUNCTION_DEFINITION)
+			value = clat_execute_ast(ctx, &ast->children[i], i + 1 < ast->num_children ? &ast->children[i + 1] : NULL, last_value);
 		
 		if(ast->type == CLAT_NODE_FUNCTION_CALL)
 		{
 			/* look at the definition and make new vars */
+			/* immediately copy the value if the prevres flag is enabled */
+
+			/* we should already have the row pointer */
+			/* also, we should NOT make new local variables for the function called if its a c callback */
+			if(row->type == CLAT_TABLE_TYPE_CALLBACK)
+			{
+				/* offset because the first is always prevres if asked, and last is always blk if asked */
+
+				if(clat_read_bitflag(arg_flags, CLAT_CALLBACK_WANT_LAST_RETURN))
+					arguments[i + 1] = value;
+				else
+					arguments[i] = value;
+			}
+
 		}
 	}
 
@@ -161,10 +219,23 @@ clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast)
 			value = clat_string_to_value(ctx, ast->data);
 		break;
 		/* TODO handle references */
+		case CLAT_NODE_FUNCTION_CALL:
+			if(row->type == CLAT_TABLE_TYPE_CALLBACK)
+			{
+				value = ((clat_callback_t *)row->value)->clat_callback(ctx, arguments, argument_num);
+				/* TODO clean up the arguments */
+			}
+			else if(row->type == CLAT_TABLE_TYPE_FUNCTION)
+			{
+				/* handle creating and estroying argument vars */
+				/* NOTE: a "..." var will be added if argument count goes over whats specified in the definition.
+				This will be an array of values */
+			}
+		break;
 	}
 
 	/* clear locally added variables */
-
+printf("TEMPORARY TEST %f\n", value.type == CLAT_TYPE_NUMBER ? clat_value_to_double(ctx, value) : 1.1);
 
 	return value;
 }

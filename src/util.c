@@ -244,7 +244,12 @@ ssize_t clat_write_file(clat_ctx_t *ctx, uint8_t data, const char *path, size_t 
 	return amount;
 }
 
-short clat_read_bitflag(uint64_t value, short bit)
+short clat_read_bitflag(uint64_t value, uint64_t flag)
+{
+	return value & flag;
+}
+
+short clat_read_bitindex(uint64_t value, short bit)
 {
 	/* shift then use a bitmask */
 	value >>= bit;
@@ -448,6 +453,16 @@ void *clat_table_value_at(clat_table_t *table, void *key, unsigned long *positio
 	return ret;
 }
 
+/* TODO maybe add a hash version? */
+clat_table_row_t *clat_table_row_at(clat_table_t *table, void *key)
+{
+	unsigned long position = 0;
+	if(!clat_table_value_at(table, key, &position))
+		return NULL;
+	
+	return &table->rows[position];
+}
+
 void *clat_table_value_at_hash(clat_table_t *table, char *key, unsigned long *position)
 {
 	void *ret = NULL;
@@ -492,7 +507,7 @@ double clat_value_to_double(clat_ctx_t *ctx, clat_val_t value)
 {
 	/* TODO determine how to handle non-numeric types. DO NOT
 	USE THESE FOR TYPECASTING NOTE NOTE NOTE */
-	if(value.type == CLAT_TYPE_STRING)
+	if(value.type == CLAT_TYPE_NUMBER)
 		return *(double *)value.value;
 	else
 		return 0;

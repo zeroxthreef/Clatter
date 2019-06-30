@@ -23,7 +23,9 @@ uint8_t *clat_read_file(clat_ctx_t *ctx, size_t begin, size_t end, const char *p
 
 ssize_t clat_write_file(clat_ctx_t *ctx, uint8_t data, const char *path, size_t size);
 
-short clat_read_bitflag(uint64_t value, short bit);
+short clat_read_bitflag(uint64_t value, uint64_t flag);
+
+short clat_read_bitindex(uint64_t value, short bit);
 
 int clat_realloc_array(void **ptr, size_t currentNum, size_t wantNum, size_t sizeOfIndividualObject);
 
@@ -48,6 +50,8 @@ int clat_table_add_row(clat_table_t *table, uint8_t type, void *key, void *value
 int clat_table_remove_row(clat_table_t *table, unsigned long row);
 
 void *clat_table_value_at(clat_table_t *table, void *key, unsigned long *position);
+
+clat_table_row_t *clat_table_row_at(clat_table_t *table, void *key);
 
 void *clat_table_value_at_hash(clat_table_t *table, char *key, unsigned long *position);
 

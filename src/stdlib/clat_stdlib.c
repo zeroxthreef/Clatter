@@ -14,23 +14,21 @@ static clat_val_t clat_cb_plus(clat_ctx_t *ctx, clat_val_t *arguments, uint16_t 
 {
 	clat_val_t ret;
 	unsigned long i;
-	uint8_t final_type = CLAT_TYPE_NUMBER;
-	/* works with string concatenation, mapping extension (special case)
-	array extension, block concatenation (difficult to add, but planned) */
-	/* NOTE promote to the highest type and return that */
-
-	/* TODO implement above */
 	
-	/* TODO remove this */
+	/* TODO remove this and just use the object pool */
 	ret.value = calloc(1, sizeof(double));
-
+	ret.type = CLAT_TYPE_NUMBER;
 
 	for(i = 0; i < argument_num; i++)
 	{
-		//if(arguments[i].type)
-		*(double *)ret.value += *(double *)arguments[i].value;
+		if(arguments[i].type == CLAT_TYPE_NUMBER)
+			*(double *)ret.value += *(double *)arguments[i].value;
+		else
+		{
+			/* TODO handle error */
+			return ret;
+		}
 	}
-
 
 	return ret;
 }

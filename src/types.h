@@ -167,6 +167,7 @@ enum clat_lang_table_types
 	CLAT_TABLE_TYPE_FUNCTION
 };
 
+/* NODE: this is not only used for callbacks though */
 enum clat_callback_flags
 {
 	CLAT_CALLBACK_REGULAR,
