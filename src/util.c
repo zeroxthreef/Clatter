@@ -154,7 +154,7 @@ void clat_print_repetitive(clat_ctx_t *ctx, char ch, int num)
 
 int clat_determine_if_number(clat_ctx_t *ctx, void *value)
 {
-	unsigned int i;
+	unsigned int i, decimal = 0;
 	utf8_int32_t code_p = 0;
 
 	/* TODO TODO TODO ALLOW HEX CHARS TO NOT CATCH IT OFF GUARD */
@@ -165,7 +165,11 @@ int clat_determine_if_number(clat_ctx_t *ctx, void *value)
 		its a number. Anything else is a pure atom. There can be decimals, so we ignore those. */
 		value = utf8codepoint(value, &code_p);
 
-		if(code_p < '0' || code_p > '9')
+		if(code_p == '.' && !decimal)
+			decimal++;
+		else if(code_p == '.' && decimal)
+			return 0;
+		else if(code_p < '0' || code_p > '9')
 			return 0;
 	}
 
@@ -489,6 +493,12 @@ int clat_destroy_value(clat_ctx_t *ctx, clat_val_t value)
 		free(value.value);
 	
 	return 0;
+}
+
+clat_object_t *clat_object_request(clat_ctx_t *ctx, clat_val_t value)
+{
+
+	
 }
 
 clat_val_t clat_double_to_value(clat_ctx_t *ctx, double value)

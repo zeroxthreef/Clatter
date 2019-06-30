@@ -78,7 +78,7 @@ int main(int argc, char **argv)
 		/* repl mode */
 		printf("%s\nREPL mode\n\nusage:\n\tto quit, type \"exit()\" and press enter\n\tfunctions have to have the colon on the same line, ex \"beep(status):\". Otherwise, REPL mode will interpret it as a function call\n\n", fancy_name);
 		/* testtable(); */
-		printf("SUPER DEBUG RETURN VALUE %f\n", clat_value_to_double(&ctx, clat_eval_string(&ctx, "+(3 +(5 5))")));
+		printf("SUPER DEBUG RETURN VALUE %f\n", clat_value_to_double(&ctx, clat_eval_string(&ctx, "+(9.3 8)")));
 		//clat_eval_string(&ctx, "func(hey) second(5) func(atom):{} second(thing):{printsp(\"woah\" thing)} other():{}");
 		clat_cleanup(&ctx);
 		return 0;

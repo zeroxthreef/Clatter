@@ -103,7 +103,8 @@ clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast, clat_ast_node
 
 			object.value.value = ((clat_ast_node_block_t *)ast->data)->functions[i].ast_node;
 			object.value.type = CLAT_TYPE_FUNCTION;
-			clat_reference_count_inc(ctx, ctx->objects.object_num);
+			//clat_reference_count_inc(ctx, ctx->objects.object_num);
+			object.references = 1;
 
 
 			if(clat_add_array_entry(&ctx->objects.objects, ctx->objects.object_num, &object, sizeof(clat_object_t)))
@@ -202,6 +203,11 @@ clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast, clat_ast_node
 				else
 					arguments[i] = value;
 			}
+			else if(row->type == CLAT_TABLE_TYPE_FUNCTION)
+			{
+				/* TODO add vars to the stack symbol table*/
+				
+			}
 
 		}
 	}
@@ -227,6 +233,7 @@ clat_val_t clat_execute_ast(clat_ctx_t *ctx, clat_ast_node_t *ast, clat_ast_node
 			}
 			else if(row->type == CLAT_TABLE_TYPE_FUNCTION)
 			{
+				printf("oof\n");
 				/* handle creating and estroying argument vars */
 				/* NOTE: a "..." var will be added if argument count goes over whats specified in the definition.
 				This will be an array of values */

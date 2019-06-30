@@ -135,7 +135,7 @@ typedef struct
 typedef struct
 {
 	clat_object_t *objects;
-	uint32_t object_num;
+	uint32_t object_num, object_alloc;
 } clat_object_list_t;
 
 typedef struct
